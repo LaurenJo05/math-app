@@ -12,6 +12,100 @@ let wrongCount = 0;
 let questionCount = 0;
 const MAX_QUESTIONS = 20;
 
+// --- Local Save Helpers ---
+// Load previously saved best stats or create defaults
+function loadBestStats() {
+  const raw = localStorage.getItem("mathBest");
+  if (!raw) {
+    return {
+      multiply: { right: 0, wrong: 0 },
+      rounding: { right: 0, wrong: 0 },
+      addsub: { right: 0, wrong: 0 }
+    };
+  }
+  return JSON.parse(raw);
+}
+
+// Save updated best stats back to localStorage
+function saveBestStats(bestStats) {
+  localStorage.setItem("mathBest", JSON.stringify(bestStats));
+}
+
+// Update the "Best Score" line on the menu
+function updateBestStatsDisplay() {
+  const bestStats = loadBestStats();
+
+  let bestMode = "multiply";
+  let bestRight = bestStats.multiply.right;
+  let bestWrong = bestStats.multiply.wrong;
+
+  if (bestStats.rounding.right > bestRight) {
+    bestMode = "rounding";
+    bestRight = bestStats.rounding.right;
+    bestWrong = bestStats.rounding.wrong;
+  }
+
+  if (bestStats.addsub.right > bestRight) {
+    bestMode = "addsub";
+    bestRight = bestStats.addsub.right;
+    bestWrong = bestStats.addsub.wrong;
+  }
+
+  const modeNames = {
+    multiply: "Multiplication",
+    rounding: "Rounding",
+    addsub: "Add & Subtract"
+  };
+
+  const bestText = (bestRight === 0 && bestWrong === 0)
+    ? "Best Score: --"
+    : "Best in " + modeNames[bestMode] + ": " +
+      bestRight + " right / " + bestWrong + " wrong";
+
+  const bestStatsEl = document.getElementById("bestStats");
+  if (bestStatsEl) {
+    bestStatsEl.innerText = bestText;
+  }
+}
+
+function updateBestStatsDisplay() {
+  const bestStats = loadBestStats();
+
+  // Pick which mode to brag about, or just show the best across all
+  // We'll show the best "right" across all modes
+  let bestMode = "multiply";
+  let bestRight = bestStats.multiply.right;
+  let bestWrong = bestStats.multiply.wrong;
+
+  if (bestStats.rounding.right > bestRight) {
+    bestMode = "rounding";
+    bestRight = bestStats.rounding.right;
+    bestWrong = bestStats.rounding.wrong;
+  }
+
+  if (bestStats.addsub.right > bestRight) {
+    bestMode = "addsub";
+    bestRight = bestStats.addsub.right;
+    bestWrong = bestStats.addsub.wrong;
+  }
+
+  const modeNames = {
+    multiply: "Multiplication",
+    rounding: "Rounding",
+    addsub: "Add & Subtract"
+  };
+
+  const bestText = (bestRight === 0 && bestWrong === 0)
+    ? "Best Score: --"
+    : "Best in " + modeNames[bestMode] + ": " +
+      bestRight + " right / " + bestWrong + " wrong";
+
+  const bestStatsEl = document.getElementById("bestStats");
+  if (bestStatsEl) {
+    bestStatsEl.innerText = bestText;
+  }
+}
+
 function startGame(selectedMode) {
   // reset shared UI
   score = 0;
@@ -202,15 +296,54 @@ if (choice === currentAnswer) {
 }
 
 function endSession() {
-  // Show summary popup
-  const summary = "You got " + correctCount + " right and " + wrongCount + " wrong.";
+  // 1. Show summary of THIS session
+  const summary =
+    "You got " + correctCount + " right and " + wrongCount + " wrong.";
   document.getElementById("sessionSummaryText").innerText = summary;
 
-  // Hide game play area so no more questions can be answered
-  document.getElementById("gameArea").classList.add("hidden");
+  // 2. Load current best from localStorage
+  const bestStats = loadBestStats();
 
-  // Show the sessionEnd overlay
+  // 3. If the current run is better, update it for this mode
+  // "Better" means: more correct in this mode
+  if (!bestStats[mode] || correctCount > bestStats[mode].right) {
+    bestStats[mode] = {
+      right: correctCount,
+      wrong: wrongCount
+    };
+    saveBestStats(bestStats);
+  }
+
+  // 4. Hide game screen and show summary popup
+  document.getElementById("gameArea").classList.add("hidden");
   document.getElementById("sessionEnd").classList.remove("hidden");
+}
+
+function playAgain() {
+  // Hide the session summary popup
+  document.getElementById("sessionEnd").classList.add("hidden");
+
+  // Reset round stats for a new session
+  score = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  questionCount = 0;
+
+  // Update UI values at the top of the game screen
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("progressText").innerText =
+    "Question: 0 / " + MAX_QUESTIONS;
+  document.getElementById("accuracyText").innerText =
+    "Right: 0 | Wrong: 0";
+
+  // Clear feedback
+  document.getElementById("feedback").innerText = "";
+
+  // Show the game area again
+  document.getElementById("gameArea").classList.remove("hidden");
+
+  // Start a new round in the SAME mode and SAME settings
+  nextQuestion();
 }
 
 function goBack() {
@@ -225,6 +358,10 @@ function goBack() {
 
   // Show main menu
   document.getElementById("menu").classList.remove("hidden");
+  
+  // 🔄 NEW: refresh the "Best Score" line on the menu
+  updateBestStatsDisplay();
+
 
   // Reset counters
   score = 0;
@@ -246,3 +383,7 @@ function goBack() {
 function closeCelebration() {
   document.getElementById("celebration").classList.add("hidden");
 }
+
+// When the page first loads, show best stats in menu if they exist
+updateBestStatsDisplay();
+

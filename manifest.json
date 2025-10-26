@@ -1,6 +1,6 @@
 {
-  "name": "Fun Math Game",
-  "short_name": "Math Game",
+  "name": "Number Champs",
+  "short_name": "Number Champs",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f2f9ff",

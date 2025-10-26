@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Fun Math App</title>
+  <title>Number Champs</title>
   <link rel="stylesheet" href="style.css">
     <!-- Manifest for installable PWA -->
   <link rel="manifest" href="manifest.json">
@@ -11,13 +11,16 @@
 </head>
 
 <body>
-  <h1>🎲 Fun Math Game 🎲</h1>
+  <h1>🎲 Number Champs 🎲</h1>
   
-  <div id="menu">
-    <button onclick="startGame('multiply')">Multiplication</button>
-    <button onclick="startGame('rounding')">Rounding</button>
-    <button onclick="startGame('addsub')">Add & Subtract</button>
-  </div>
+<div id="menu">
+  <h2 id="bestStats">Best Score: --</h2>
+
+  <button onclick="startGame('multiply')">Multiplication</button>
+  <button onclick="startGame('rounding')">Rounding</button>
+  <button onclick="startGame('addsub')">Add & Subtract</button>
+</div>
+
   <!-- Multiplication options (shown after you click Multiplication) -->
 <div id="multOptions" class="hidden">
   <h2>Choose Times Tables</h2>
@@ -87,6 +90,17 @@
 <!-- Sounds (add your own mp3/wav files in /sounds) -->
   <audio id="correctSound" src="sounds/correct.mp3" preload="auto"></audio>
   <audio id="incorrectSound" src="sounds/incorrect.mp3" preload="auto"></audio>
+
+<!-- End of session summary -->
+<div id="sessionEnd" class="hidden">
+  <div class="popup">
+    <h2>Session Complete</h2>
+    <p id="sessionSummaryText">You got X right and Y wrong.</p>
+
+    <button id="playAgainBtn" onclick="playAgain()">🔁 Play Again</button>
+    <button id="backToMenuBtn" onclick="goBack()">🏠 Back to Menu</button>
+  </div>
+</div>
 
   <script src="script.js"></script>
     <!-- Register the service worker -->
